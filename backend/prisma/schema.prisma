@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  FACULTY
+  ADMIN
+}
+
+enum EquipmentStatus {
+  AVAILABLE
+  MAINTENANCE
+  RETIRED
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  COMPLETED
+}
+
+model Department {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  code        String     @unique
+  description String?
+  createdAt   DateTime   @default(now())
+  users       User[]
+  equipment   Equipment[]
+  bookings    Booking[]
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(STUDENT)
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  createdAt    DateTime  @default(now())
+  bookings     Booking[] @relation("BookingStudent")
+  approvals    Booking[] @relation("BookingReviewer")
+}
+
+model Equipment {
+  id          String          @id @default(cuid())
+  name        String
+  slug        String          @unique
+  description String
+  category    String
+  location    String
+  status      EquipmentStatus @default(AVAILABLE)
+  quantity    Int             @default(1)
+  tags        String          @default("")
+  specs       String          @default("{}")
+  departmentId String
+  department  Department      @relation(fields: [departmentId], references: [id])
+  bookings    Booking[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([category])
+  @@index([departmentId])
+}
+
+model Booking {
+  id                     String        @id @default(cuid())
+  projectName            String
+  projectDescription     String
+  additionalRequirements String?
+  startsAt               DateTime
+  endsAt                 DateTime
+  projectDeadline        DateTime
+  status                 BookingStatus @default(PENDING)
+  rejectionReason        String?
+  priorityScore          Float?
+  priorityBreakdown      String?
+  userId                 String
+  user                   User          @relation("BookingStudent", fields: [userId], references: [id])
+  equipmentId            String
+  equipment              Equipment     @relation(fields: [equipmentId], references: [id])
+  departmentId           String
+  department             Department    @relation(fields: [departmentId], references: [id])
+  reviewedById           String?
+  reviewedBy             User?         @relation("BookingReviewer", fields: [reviewedById], references: [id])
+  reviewedAt             DateTime?
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+
+  @@index([equipmentId, startsAt, endsAt])
+  @@index([userId])
+  @@index([status])
+}

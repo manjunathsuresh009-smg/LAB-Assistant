@@ -1,0 +1,18 @@
+{
+  "name": "campuslab-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CampusLab AI - Intelligent Laboratory Resource Sharing Platform",
+  "scripts": {
+    "install:all": "npm --prefix backend install && npm --prefix frontend install",
+    "setup": "npm run install:all && npm --prefix backend run db:push && npm --prefix backend run seed",
+    "dev": "concurrently -n api,web -c yellow,cyan \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
+    "build": "npm --prefix frontend run build && npm --prefix backend run build",
+    "start": "npm --prefix backend run start",
+    "test": "npm --prefix backend run test",
+    "typecheck": "npm --prefix backend run typecheck && npm --prefix frontend run typecheck"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}
